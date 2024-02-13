@@ -20,6 +20,18 @@ class DBClient {
         });
     }
 
+    async getUserByEmailAndPassword(email, hashedPassword) {
+        const db = this.client.db();
+        const usersCollection = db.collection('users');
+        return usersCollection.findOne({ email, password: hashedPassword });
+    }
+
+    async getUserById(userId) {
+        const db = this.client.db();
+        const usersCollection = db.collection('users');
+        return usersCollection.findOne({ _id: ObjectId(userId) });
+    }
+
     async getUserByEmail(email) {
         const db = this.client.db();
         const usersCollection = db.collection('users');
