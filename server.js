@@ -1,16 +1,14 @@
 /* eslint-disable */
 import express from 'express';
-import dotenv from 'dotenv';
 import routes from './routes';
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json());
-app.use(routes);
+// Load all routes from the routes directory
+app.use('/', routes);
 
+// Start the Express server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
