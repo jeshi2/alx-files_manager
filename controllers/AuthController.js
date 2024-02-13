@@ -1,7 +1,7 @@
 /* eslint-disable */
-import { v4 as uuidv4 } from 'uuid';
-import redisClient from '../utils/redis';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
+import { v4 as uuidv4 } from 'uuid';
 import sha1 from 'sha1';
 
 const AuthController = {
@@ -11,26 +11,22 @@ const AuthController = {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const auth = authHeader.split(' ')[1];
-    const [email, password] = Buffer.from(auth, 'base64').toString().split(':');
+    const base64Credentials = authHeader.split(' ')[1];
+    const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+    const [email, password] = credentials.split(':');
 
-    if (!email || !password) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const user = await dbClient.getUserByEmail(email);
-    if (!user || user.password !== sha1(password)) {
+    const user = await dbClient.getUserByEmailAndPassword(email, sha1(password));
+    if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const token = uuidv4();
-    await redisClient.set(`auth_${token}`, user._id.toString(), 86400);
-
+    await redisClient.set(`auth_${token}`, user._id.toString(), 86400); // 24 hours expiration
     return res.status(200).json({ token });
   },
 
   getDisconnect: async (req, res) => {
-    const { 'x-token': token } = req.headers;
+    const token = req.headers['x-token'];
     if (!token) {
       return res.status(401).json({ error: 'Unauthorized' });
     }

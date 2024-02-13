@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 class DBClient {
     constructor() {
@@ -20,17 +20,17 @@ class DBClient {
         });
     }
 
-    async getUserByEmailAndPassword(email, hashedPassword) {
+    async getUserByEmailAndPassword(email, password) {
         const db = this.client.db();
         const usersCollection = db.collection('users');
-        return usersCollection.findOne({ email, password: hashedPassword });
-    }
-
-    async getUserById(userId) {
+        return usersCollection.findOne({ email, password });
+      }
+    
+      async getUserById(userId) {
         const db = this.client.db();
         const usersCollection = db.collection('users');
         return usersCollection.findOne({ _id: ObjectId(userId) });
-    }
+      }
 
     async getUserByEmail(email) {
         const db = this.client.db();
@@ -47,12 +47,6 @@ class DBClient {
         };
         const result = await usersCollection.insertOne(newUser);
         return result.ops[0];
-    }
-
-    async getFileById(fileId) {
-        const db = this.client.db();
-        const filesCollection = db.collection('files');
-        return filesCollection.findOne({ _id: ObjectId(fileId) });
     }
 
     async createFile(file) {
