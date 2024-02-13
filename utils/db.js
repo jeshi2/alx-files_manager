@@ -24,14 +24,14 @@ class DBClient {
         const db = this.client.db();
         const filesCollection = db.collection('files');
         return filesCollection.findOne({ _id: ObjectId(fileId) });
-    }
-
-    async createFile(fileData) {
+      }
+    
+      async createFile(fileDocument) {
         const db = this.client.db();
         const filesCollection = db.collection('files');
-        const insertResult = await filesCollection.insertOne(fileData);
-        return { id: insertResult.insertedId, ...fileData };
-    }
+        const { insertedId } = await filesCollection.insertOne(fileDocument);
+        return { id: insertedId, ...fileDocument };
+      }
 
     async getUserByEmailAndPassword(email, password) {
         const db = this.client.db();
