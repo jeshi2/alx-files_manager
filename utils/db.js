@@ -49,6 +49,19 @@ class DBClient {
         return result.ops[0];
     }
 
+    async getFileById(fileId) {
+        const db = this.client.db();
+        const filesCollection = db.collection('files');
+        return filesCollection.findOne({ _id: ObjectId(fileId) });
+    }
+
+    async createFile(file) {
+        const db = this.client.db();
+        const filesCollection = db.collection('files');
+        const { insertedId } = await filesCollection.insertOne(file);
+        return insertedId.toString();
+    }
+
     isAlive() {
         return this.client.isConnected();
     }
