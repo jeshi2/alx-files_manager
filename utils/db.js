@@ -20,6 +20,23 @@ class DBClient {
         });
     }
 
+    async getUserByEmail(email) {
+        const db = this.client.db();
+        const usersCollection = db.collection('users');
+        return usersCollection.findOne({ email });
+    }
+
+    async createUser(email, hashedPassword) {
+        const db = this.client.db();
+        const usersCollection = db.collection('users');
+        const newUser = {
+            email,
+            password: hashedPassword,
+        };
+        const result = await usersCollection.insertOne(newUser);
+        return result.ops[0];
+    }
+
     isAlive() {
         return this.client.isConnected();
     }
