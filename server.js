@@ -1,17 +1,11 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import router from './routes/index';
-const PORT = process.env.PORT || 5000;
+const startServer = require('./libs/boot');
+const injectRoutes = require('./routes');
+const injectMiddlewares = require('./libs/middlewares');
+const express = require('express');
+const server = express();
 
-const app = express();
-app.use(bodyParser.json());
-app.use(
-  bodyParser.urlencoded({
-    extended: true
-  })
-);
-app.use(router);
+injectMiddlewares(server);
+injectRoutes(server);
+startServer(server);
 
-app.listen(PORT, () => {
-  console.log(`server listening on port ${PORT}`);
-});
+module.exports = server;
