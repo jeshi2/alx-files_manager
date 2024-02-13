@@ -4,7 +4,7 @@ import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
 
 export default class UsersController {
-  static async postNew(req, res) {
+  static async postNew (req, res) {
     const email = req.body ? req.body.email : null;
     const password = req.body ? req.body.password : null;
     if (!email) {
@@ -19,7 +19,6 @@ export default class UsersController {
     const user = await (await dbClient.usersCollection()).findOne({ email });
     if (user) {
       res.status(400).json({ error: 'Already exist' });
-      return;
     } else {
       const insertInfo = await (
         await dbClient.usersCollection()
@@ -28,7 +27,7 @@ export default class UsersController {
     }
   }
 
-  static async getMe(req, res) {
+  static async getMe (req, res) {
     const xToken = req.headers['x-token'];
     if (!xToken) {
       res.status(401).json({ error: 'Unauthorized' });
