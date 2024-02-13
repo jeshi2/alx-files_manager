@@ -20,17 +20,30 @@ class DBClient {
         });
     }
 
+    async getFileById(fileId) {
+        const db = this.client.db();
+        const filesCollection = db.collection('files');
+        return filesCollection.findOne({ _id: ObjectId(fileId) });
+    }
+
+    async createFile(fileData) {
+        const db = this.client.db();
+        const filesCollection = db.collection('files');
+        const insertResult = await filesCollection.insertOne(fileData);
+        return { id: insertResult.insertedId, ...fileData };
+    }
+
     async getUserByEmailAndPassword(email, password) {
         const db = this.client.db();
         const usersCollection = db.collection('users');
         return usersCollection.findOne({ email, password });
-      }
-    
-      async getUserById(userId) {
+    }
+
+    async getUserById(userId) {
         const db = this.client.db();
         const usersCollection = db.collection('users');
         return usersCollection.findOne({ _id: ObjectId(userId) });
-      }
+    }
 
     async getUserByEmail(email) {
         const db = this.client.db();
