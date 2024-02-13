@@ -1,14 +1,19 @@
-import express from 'express';
-import routes from './routes';
+/* eslint-disable */
+import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
-const app = express();
+class AppController {
+    static async getStatus(req, res) {
+        const redisStatus = redisClient.isAlive();
+        const dbStatus = dbClient.isAlive();
+        res.status(200).json({ redis: redisStatus, db: dbStatus });
+    }
 
-// Load all routes from routes/index.js
-app.use('/', routes);
+    static async getStats(req, res) {
+        const usersCount = await dbClient.nbUsers();
+        const filesCount = await dbClient.nbFiles();
+        res.status(200).json({ users: usersCount, files: filesCount });
+    }
+}
 
-// Set the port from environment variable PORT or default to 5000
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+export default AppController;
