@@ -20,19 +20,6 @@ class DBClient {
         });
     }
 
-    async getFileById(fileId) {
-        const db = this.client.db();
-        const filesCollection = db.collection('files');
-        return filesCollection.findOne({ _id: ObjectId(fileId) });
-      }
-    
-      async createFile(newFile) {
-        const db = this.client.db();
-        const filesCollection = db.collection('files');
-        const result = await filesCollection.insertOne(newFile);
-        return result.insertedId.toString();
-      }
-
     async getUserByEmailAndPassword(email, password) {
         const db = this.client.db();
         const usersCollection = db.collection('users');
