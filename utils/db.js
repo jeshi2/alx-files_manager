@@ -72,24 +72,19 @@ class DBClient {
         return result.ops[0];
     }
 
-    async getFile(userId, fileId) {
-        try {
-          const file = await this.files.findOne({ _id: fileId, userId });
-          return file;
-        } catch (error) {
-          console.error('Error fetching file:', error);
-          return null;
-        }
+    getFilesByParentId(userId, parentId, skip, limit) {
+        return this.db
+          .collection('files')
+          .find({ userId, parentId })
+          .skip(skip)
+          .limit(limit)
+          .toArray();
       }
-    
-      async getFiles(userId, parentId, skip, limit) {
-        try {
-          const files = await this.files.find({ userId, parentId }).skip(skip).limit(limit).toArray();
-          return files;
-        } catch (error) {
-          console.error('Error fetching files:', error);
-          return [];
-        }
+      
+      getFileById(fileId) {
+        return this.db
+          .collection('files')
+          .findOne({ _id: ObjectId(fileId) });
       }
 
     isAlive() {
