@@ -60,8 +60,8 @@ const FilesController = {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const fileId = req.params.id;
-    const file = await dbClient.getFile(userId, fileId);
+    const { id } = req.params;
+    const file = await dbClient.getFile(userId, id);
     if (!file) {
       return res.status(404).json({ error: 'Not found' });
     }
@@ -80,15 +80,11 @@ const FilesController = {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const parentId = req.query.parentId || 0;
-    const page = parseInt(req.query.page) || 0;
-    const pageSize = 20;
-    const skip = page * pageSize;
-
-    const files = await dbClient.getFiles(userId, parentId, skip, pageSize);
+    const { parentId = '0', page = 0 } = req.query;
+    const files = await dbClient.getFiles(userId, parentId, page);
     return res.json(files);
   },
-  
+
 };
 
 export default FilesController;
