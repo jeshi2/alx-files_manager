@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { MongoClient, ObjectId } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
 class DBClient {
     constructor() {
@@ -60,13 +60,6 @@ class DBClient {
         };
         const result = await usersCollection.insertOne(newUser);
         return result.ops[0];
-    }
-
-    async createFile(file) {
-        const db = this.client.db();
-        const filesCollection = db.collection('files');
-        const { insertedId } = await filesCollection.insertOne(file);
-        return insertedId.toString();
     }
 
     isAlive() {
