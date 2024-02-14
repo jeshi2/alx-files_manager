@@ -2,9 +2,8 @@
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 import fs from 'fs';
+import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-
-const FOLDER_PATH = process.env.FOLDER_PATH || '/tmp/files_manager';
 
 const FilesController = {
   postUpload: async (req, res) => {
@@ -19,7 +18,6 @@ const FilesController = {
     }
 
     const { name, type, parentId = 0, isPublic = false, data } = req.body;
-
     if (!name) {
       return res.status(400).json({ error: 'Missing name' });
     }
@@ -28,26 +26,36 @@ const FilesController = {
       return res.status(400).json({ error: 'Missing type' });
     }
 
-    if ((type !== 'folder') && !data) {
+    if (['file', 'image'].includes(type) && !data) {
       return res.status(400).json({ error: 'Missing data' });
     }
 
     if (parentId !== 0) {
       const parentFile = await dbClient.getFileById(parentId);
       if (!parentFile || parentFile.type !== 'folder') {
-        return res.status(400).json({ error: 'Parent is not a folder' });
+        return res.status(400).json({ error: 'Parent not found or is not a folder' });
       }
     }
 
-    let localPath;
-    if (type !== 'folder') {
-      const fileData = Buffer.from(data, 'base64');
-      const filePath = `${FOLDER_PATH}/${uuidv4()}`;
-      fs.writeFileSync(filePath, fileData);
-      localPath = filePath;
+    let localPath = '';
+    if (['file', 'image'].includes(type)) {
+      const folderPath = process.env.FOLDER_PATH || '/tmp/files_manager';
+      localPath = path.join(folderPath, uuidv4());
+      await fs.promises.writeFile(localPath, Buffer.from(data, 'base64'));
     }
 
-    const newFile = await dbClient.createFile(userId, name, type, parentId, isPublic, localPath);
+    const newFile = {
+      userId,
+      name,
+      type,
+      isPublic,
+      parentId,
+      localPath: type !== 'folder' ? localPath : undefined,
+    };
+
+    const fileId = await dbClient.createFile(newFile);
+    newFile.id = fileId;
+
     return res.status(201).json(newFile);
   },
 };

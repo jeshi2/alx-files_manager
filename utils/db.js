@@ -26,21 +26,11 @@ class DBClient {
         return filesCollection.findOne({ _id: ObjectId(fileId) });
       }
     
-      async createFile(userId, name, type, parentId, isPublic, localPath = null) {
+      async createFile(newFile) {
         const db = this.client.db();
         const filesCollection = db.collection('files');
-        const newFile = {
-          userId: ObjectId(userId),
-          name,
-          type,
-          parentId: ObjectId(parentId),
-          isPublic,
-        };
-        if (localPath) {
-          newFile.localPath = localPath;
-        }
         const result = await filesCollection.insertOne(newFile);
-        return { id: result.insertedId, ...newFile };
+        return result.insertedId.toString();
       }
 
     async getUserByEmailAndPassword(email, password) {
