@@ -20,27 +20,27 @@ class DBClient {
         });
     }
 
-    async createFile(userId, name, type, parentId = 0, isPublic = false, localPath = null) {
-        const db = this.client.db();
-        const filesCollection = db.collection('files');
-        const fileDoc = {
-          userId: ObjectId(userId),
-          name,
-          type,
-          isPublic,
-          parentId: parentId !== 0 ? ObjectId(parentId) : 0,
-        };
-        if (localPath) {
-          fileDoc.localPath = localPath;
-        }
-        const result = await filesCollection.insertOne(fileDoc);
-        return result.insertedId.toString();
-      }
-    
-      async getFileById(fileId) {
+    async getFileById(fileId) {
         const db = this.client.db();
         const filesCollection = db.collection('files');
         return filesCollection.findOne({ _id: ObjectId(fileId) });
+      }
+    
+      async createFile(userId, name, type, parentId, isPublic, localPath = null) {
+        const db = this.client.db();
+        const filesCollection = db.collection('files');
+        const newFile = {
+          userId: ObjectId(userId),
+          name,
+          type,
+          parentId: ObjectId(parentId),
+          isPublic,
+        };
+        if (localPath) {
+          newFile.localPath = localPath;
+        }
+        const result = await filesCollection.insertOne(newFile);
+        return { id: result.insertedId, ...newFile };
       }
 
     async getUserByEmailAndPassword(email, password) {
