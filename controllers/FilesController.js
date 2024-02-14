@@ -82,12 +82,11 @@ const FilesController = {
 
     const fileId = req.params.id;
     const file = await dbClient.getFileById(fileId);
-
     if (!file || file.userId !== userId) {
       return res.status(404).json({ error: 'Not found' });
     }
 
-    return res.json(file);
+    return res.status(200).json(file);
   },
 
   getIndex: async (req, res) => {
@@ -101,14 +100,9 @@ const FilesController = {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const parentId = req.query.parentId || '0';
-    const page = parseInt(req.query.page) || 0;
-    const pageSize = 20;
-    const skip = page * pageSize;
-
-    const files = await dbClient.getFilesByParentId(userId, parentId, skip, pageSize);
-
-    return res.json(files);
+    const { parentId = '0', page = 0 } = req.query;
+    const files = await dbClient.getFilesByParentId(userId, parentId, page);
+    return res.status(200).json(files);
   },
 };
 
