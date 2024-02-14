@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 
 class DBClient {
     constructor() {
@@ -20,17 +20,27 @@ class DBClient {
         });
     }
 
-    async getFileById(fileId) {
+    async createFile(userId, name, type, parentId = 0, isPublic = false, localPath = null) {
+        const db = this.client.db();
+        const filesCollection = db.collection('files');
+        const fileDoc = {
+          userId: ObjectId(userId),
+          name,
+          type,
+          isPublic,
+          parentId: parentId !== 0 ? ObjectId(parentId) : 0,
+        };
+        if (localPath) {
+          fileDoc.localPath = localPath;
+        }
+        const result = await filesCollection.insertOne(fileDoc);
+        return result.insertedId.toString();
+      }
+    
+      async getFileById(fileId) {
         const db = this.client.db();
         const filesCollection = db.collection('files');
         return filesCollection.findOne({ _id: ObjectId(fileId) });
-      }
-    
-      async createFile(fileDocument) {
-        const db = this.client.db();
-        const filesCollection = db.collection('files');
-        const { insertedId } = await filesCollection.insertOne(fileDocument);
-        return { id: insertedId, ...fileDocument };
       }
 
     async getUserByEmailAndPassword(email, password) {
