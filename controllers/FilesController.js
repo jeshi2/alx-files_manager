@@ -2,21 +2,12 @@
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 import { v4 as uuidv4 } from 'uuid';
-import fs from 'fs';
 
 const FilesController = {
   postUpload: async (req, res) => {
-    const { name, type, data, parentId = 0, isPublic = false } = req.body;
     const token = req.headers['x-token'];
-    
-    if (!name) {
-      return res.status(400).json({ error: 'Missing name' });
-    }
-    if (!type || !['folder', 'file', 'image'].includes(type)) {
-      return res.status(400).json({ error: 'Missing type' });
-    }
-    if (!data && type !== 'folder') {
-      return res.status(400).json({ error: 'Missing data' });
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const userId = await redisClient.get(`auth_${token}`);
@@ -24,10 +15,25 @@ const FilesController = {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    if (parentId !== 0) {
-      const parentFile = await dbClient.getFileById(parentId);
-      if (!parentFile || parentFile.type !== 'folder') {
-        return res.status(400).json({ error: 'Parent not found or is not a folder' });
+    const { name, type, parentId = '0', isPublic = false, data } = req.body;
+    if (!name) {
+      return res.status(400).json({ error: 'Missing name' });
+    }
+    if (!type || !['folder', 'file', 'image'].includes(type)) {
+      return res.status(400).json({ error: 'Missing type' });
+    }
+    if ((type === 'file' || type === 'image') && !data) {
+      return res.status(400).json({ error: 'Missing data' });
+    }
+
+    let parentFile;
+    if (parentId !== '0') {
+      parentFile = await dbClient.getFileById(parentId);
+      if (!parentFile) {
+        return res.status(400).json({ error: 'Parent not found' });
+      }
+      if (parentFile.type !== 'folder') {
+        return res.status(400).json({ error: 'Parent is not a folder' });
       }
     }
 
@@ -40,11 +46,9 @@ const FilesController = {
     };
 
     if (type === 'file' || type === 'image') {
-      const filePath = process.env.FOLDER_PATH || '/tmp/files_manager';
-      const fileUUID = uuidv4();
-      const localPath = `${filePath}/${fileUUID}`;
-      await fs.promises.writeFile(localPath, Buffer.from(data, 'base64'));
-      fileDocument.localPath = localPath;
+      const filePath = `${process.env.FOLDER_PATH || '/tmp/files_manager'}/${uuidv4()}`;
+      await fs.promises.writeFile(filePath, Buffer.from(data, 'base64'));
+      fileDocument.localPath = filePath;
     }
 
     const newFile = await dbClient.createFile(fileDocument);
