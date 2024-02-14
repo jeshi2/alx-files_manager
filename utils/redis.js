@@ -1,40 +1,32 @@
 /* eslint-disable */
-import { promisify } from 'util';
 import { createClient } from 'redis';
+import { promisify } from 'util';
 
 class RedisClient {
-  constructor () {
-    this.client = createClient({
-      host: 'localhost',
-      port: 6379
-    });
-
-    this.isClientConnected = true;
-
-    this.client.on('error', (error) => {
-      console.error('Redis error:', error);
-      this.isClientConnected = false;
-    });
-
-    this.client.on('connect', () => {
-      this.isClientConnected = true;
+  constructor() {
+    this.client = createClient();
+    this.client.on('error', (err) => {
+      console.log(err.message);
     });
   }
 
-  isAlive () {
-    return this.isClientConnected;
+  isAlive() {
+    return this.client.connected;
   }
 
-  async get (key) {
-    return promisify(this.client.get).bind(this.client)(key);
+  async get(key) {
+    const getAsync = promisify(this.client.get).bind(this.client);
+    return getAsync(key);
   }
 
-  async set (key, value, durationInSeconds) {
-    return promisify(this.client.set).bind(this.client)(key, value, 'EX', durationInSeconds);
+  async set(key, value, duration) {
+    const setAsync = promisify(this.client.set).bind(this.client);
+    return setAsync(key, value, 'EX', duration);
   }
 
-  async del (key) {
-    return promisify(this.client.del).bind(this.client)(key);
+  async del(key) {
+    const delAsync = promisify(this.client.del).bind(this.client);
+    return delAsync(key);
   }
 }
 

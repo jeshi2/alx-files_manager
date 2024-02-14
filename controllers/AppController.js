@@ -1,29 +1,23 @@
 /* eslint-disable */
-import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
+import dbClient from '../utils/db';
 
-const AppController = {
-  getStatus: (req, res) => {
-    const status = {
+class AppController {
+  static getStatus(_req, res) {
+    const json = {
       redis: redisClient.isAlive(),
       db: dbClient.isAlive(),
     };
-    return res.status(200).json(status);
-  },
-  getStats: async (req, res) => {
-    try {
-      const usersCount = await dbClient.nbUsers();
-      const filesCount = await dbClient.nbFiles();
-      const stats = {
-        users: usersCount,
-        files: filesCount,
-      };
-      return res.status(200).json(stats);
-    } catch (error) {
-      console.error('Error retrieving stats:', error);
-      return res.status(500).json({ error: 'Internal Server Error' });
-    }
-  },
-};
+    res.status(200).send(json);
+  }
+
+  static async getStats(_req, res) {
+    const json = {
+      users: await dbClient.nbUsers(),
+      files: await dbClient.nbFiles(),
+    };
+    res.status(200).send(json);
+  }
+}
 
 export default AppController;
