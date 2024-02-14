@@ -4,18 +4,8 @@ import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
-/**
- * @class UsersController
- * @description This class handles all authorization related requests
- */
+
 class UsersController {
-  /**
-   * @param {object} req
-   * @param {object} res
-   * @returns {object} user
-   * @memberof UsersController
-   * @description This method creates a new user
-   */
   static async postNew(req, res) {
     const { email, password } = req.body;
     if (!email) {
@@ -56,12 +46,6 @@ class UsersController {
     res.status(201).send(json);
   }
 
-  /**
-   * @param {object} req
-   * @param {object} res
-   * @returns {object} user
-   * @description This method retrieves user data based on user based token
-   */
   static async getMe(req, res) {
     const authToken = req.header('X-Token') || null;
     if (!authToken) {

@@ -16,19 +16,7 @@ const fileQueue = new Queue('fileQueue', {
   },
 });
 
-/**
- * @class FilesController
- * @description Controller for files related operations
- * @exports FilesController
- */
 class FilesController {
-  /**
-   * @method postUpload
-   * @description Uploads a file
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   * @returns {Object} - Express response object
-   */
   static async postUpload(req, res) {
     const user = await FilesController.retrieveUserBasedOnToken(req);
     if (!user) {
@@ -117,15 +105,7 @@ class FilesController {
     }
   }
 
-  /**
-   * @method writeToFile
-   * @description Helper function of @postUpload that writes the file to the disk
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   * @returns {Object} - Express response object
-   */
   static async writeToFile(res, filePath, data, newFile) {
-    // write to file
     await fs.promises.writeFile(filePath, data, 'utf-8');
 
     const files = dbClient.db.collection('files');
@@ -137,7 +117,7 @@ class FilesController {
     delete writeResp._id;
     delete writeResp.localPath;
 
-    // add to queue to process file thumbnails
+    // Add to queue to process file thumbnails
     if (writeResp.type === 'image') {
       fileQueue.add({ userId: writeResp.userId, fileId: writeResp.id });
     }
@@ -146,13 +126,6 @@ class FilesController {
     res.status(201).send(writeResp);
   }
 
-  /**
-   * @method retrieveUserBasedOnToken
-   * @description retrieve user based on auth token
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   * @returns {Object} - Express response object
-   */
   static async retrieveUserBasedOnToken(req) {
     const authToken = req.header('X-Token') || null;
     if (!authToken) return null;
@@ -167,13 +140,6 @@ class FilesController {
     return userDoc;
   }
 
-  /**
-   * @method getShow
-   * @description retrieve files based on id
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   * @returns {Object} - Express response object
-   */
   static async getShow(req, res) {
     const {
       id,
@@ -203,12 +169,6 @@ class FilesController {
     }
   }
 
-  /**
-   * @description retrieve files based on parentid and pagination
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   * @returns {Object} - Express response object
-   */
   static async getIndex(req, res) {
     const user = await FilesController.retrieveUserBasedOnToken(req);
     if (!user) {
@@ -266,36 +226,14 @@ class FilesController {
     res.status(200).send(finalResult);
   }
 
-  /**
-   * @method putPublish
-   * @description set isPublic to true on the file document based on the ID
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   * @returns {Object} - Express response object
-   */
   static putPublish(req, res) {
     FilesController.pubSubHelper(req, res, true);
   }
 
-  /**
-   * @method putUnpublish
-   * @description set isPublic to false on the file document based on the ID
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   * @returns {Object} - Express response object
-   */
   static putUnpublish(req, res) {
     FilesController.pubSubHelper(req, res, false);
   }
 
-  /**
-   * @method pubSubHelper
-   * @description helper method for @putPublish and @putUnpublish
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   * @param {Boolean} isPublic - isPublic value to set
-   * @returns {Object} - Express response object
-   */
   static async pubSubHelper(req, res, updateValue) {
     const {
       id,
@@ -335,13 +273,6 @@ class FilesController {
     }
   }
 
-  /**
-   * @method getFile
-   * @description return the content of the file document based on the ID
-   * @param {Object} req - Express request object
-   * @param {Object} res - Express response object
-   * @returns {Object} - Express response object
-   */
   static async getFile(req, res) {
     const {
       id,
@@ -387,24 +318,16 @@ class FilesController {
       ? `${file.localPath}_${size}`
       : file.localPath;
 
-    // check if file exists
     if (!(await FilesController.pathExists(lookUpPath))) {
       res.status(404).send({
         error: 'Not found',
       });
     } else {
-      // read file with fs
       res.set('Content-Type', mime.lookup(file.name));
       res.status(200).sendFile(lookUpPath);
     }
   }
 
-  /**
-   * @method pathExists
-   * @description check if the path exists
-   * @param {String} path - path to check
-   * @returns {Boolean} - true if path exists, false otherwise
-   */
   static pathExists(path) {
     return new Promise((resolve) => {
       fs.access(path, fs.constants.F_OK, (err) => {
